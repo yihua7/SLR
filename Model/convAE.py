@@ -4,16 +4,14 @@ import Model.networks as nw
 import math
 
 
-class convVAE:
-    def __init__(self, channels, hiddens, W_shapes, strides, KL_lambda, batch_size):
+class convAE:
+    def __init__(self, channels, hiddens, W_shapes, strides, batch_size):
         self.channels = channels
         self.hiddens = hiddens
         self.W_shapes = W_shapes
         self.strides = strides
-        self.KL_lambda = KL_lambda
         self.batch_size = batch_size
         self.input = tf.placeholder(tf.float32, shape=[None, 480, 640, 3], name='Image')
-        self.gaussian = tf.placeholder(tf.float32, shape=[None, 1], name='Gaussian')
         final_frame = self.input.get_shape().as_list()[1:]
         final_frame[0] = math.ceil(final_frame[0] / pow(2, len(self.channels)))
         final_frame[1] = math.ceil(final_frame[1] / pow(2, len(self.channels)))
@@ -31,11 +29,9 @@ class convVAE:
         self.mean = self.embedded[0]
         self.log_sigma = self.embedded[1]
         self.test = tf.exp(self.log_sigma)
-        self.KL_loss = self.KL_lambda * (.5 * tf.reduce_sum(tf.pow(self.mean, 2) + tf.exp(self.log_sigma) - 1. - self.log_sigma))
-        print('KL loss: ', self.KL_loss)
 
         # Total Loss
-        self.loss = self.recon_loss + self.KL_loss
+        self.loss = self.recon_loss
         print('Loss: ', self.loss)
 
         self.saver = tf.train.Saver(max_to_keep=2)
@@ -52,21 +48,12 @@ class convVAE:
                 input = nw.set_full(input, self.hiddens[i], 'full' + str(i))
                 print(input)
             input = tf.contrib.layers.batch_norm(input, .9, epsilon=1e-5, activation_fn=None)
-            mean = nw.set_full(input, self.hiddens[-1], 'mean', None)
-            log_sigma = nw.set_full(input, self.hiddens[-1], 'sigma', None)
-            output = [mean, log_sigma]
-            print(output)
+            output = nw.set_full(input, self.hiddens[-1], 'mean', None)
             return output
 
     def decoder(self, input):
         print('Decoder')
-        mean = input[0]
-        log_sigma = input[1]
-        print('mean: ', mean)
-        print('log_sigma: ', log_sigma)
-        print('gaussian: ', self.gaussian)
-        sample = tf.transpose(tf.transpose(tf.exp(tf.divide(log_sigma, 2.))) * tf.transpose(self.gaussian)) + mean
-        print('sample: ', sample)
+        sample = input
         with tf.variable_scope('Decoder'):
             for i in range(len(self.hiddens) - 1):
                 sample = nw.set_full(sample, self.hiddens[len(self.hiddens) - i - 1], 'full' + str(i))

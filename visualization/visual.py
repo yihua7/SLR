@@ -109,6 +109,16 @@ def plot_loss(loss, KL, recon, step):
     plt.show()
 
 
+def plot_AE_loss(loss, step):
+    plt.close('all')
+    plt.plot(step, loss, "b.-")
+    plt.title("Loss Info of convAE")
+    plt.xlabel("Step")
+    plt.ylabel("Loss")
+    plt.savefig("./visualization/AE_train_info.png")
+    plt.show()
+
+
 def hotmap_visualization(heatmap, image, labelimage, path, name):
     heatmap = np.array(heatmap)
     image = np.squeeze(np.array(image, int))

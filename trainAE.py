@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from Model.convVAE import convVAE
+from Model.convAE import convAE
 import glob
 import Pre_processing.GetInput as GetInput
 import visualization.visual as visual
@@ -17,7 +17,7 @@ strides = [2, 2, 2]
 batch_size = 5
 KL_lambda = 1000.
 
-model = convVAE(channels, hiddens, W_shapes, strides, KL_lambda, batch_size)
+model = convAE(channels, hiddens, W_shapes, strides, batch_size)
 
 image_list = glob.glob(image_path + '\\*.jpeg')
 
@@ -26,11 +26,7 @@ lr = .001
 expoch = 1000000
 optimizer = tf.train.AdamOptimizer(lr).minimize(model.loss)
 All_loss = []
-All_KL = []
-All_recon = []
 temp_loss = []
-temp_KL = []
-temp_recon = []
 step = []
 
 # config = tf.ConfigProto()
@@ -43,7 +39,7 @@ config.gpu_options.allow_growth = True      #程序按需申请内存
 sess = tf.Session(config=config)
 
 if continuous:
-    latest = tf.train.latest_checkpoint('./parameters/convVAE/')
+    latest = tf.train.latest_checkpoint('./parameters/convAE/')
     model.saver.restore(sess, latest)
 else:
     sess.run(tf.global_variables_initializer())
@@ -54,27 +50,21 @@ for i in range(expoch):
     for j in range(batch_size):
         images.append(GetInput.getimage(image_list[index[j]]))
     gaussian = np.random.normal(size=[batch_size, 1])
-    loss, KL, recon, _ = sess.run(fetches=[model.loss, model.KL_loss, model.recon_loss, optimizer],
-                                  feed_dict={model.input: images, model.gaussian: gaussian})
+    loss, _ = sess.run(fetches=[model.loss, optimizer],
+                       feed_dict={model.input: images})
     # loss, KL, recon, log_sigma, test, _ = sess.run(
     #     fetches=[model.loss, model.KL_loss, model.recon_loss, model.log_sigma, model.test, optimizer],
     #     feed_dict={model.input: images, model.gaussian: gaussian})
 
     loss = loss / batch_size
-    KL = np.average(KL)
-    recon = recon / batch_size
     temp_loss.append(loss)
-    temp_KL.append(KL)
-    temp_recon.append(recon)
     # print('log_sigma and test: ', log_sigma, ', \n', test)
-    print('Step %d|| loss: %8f || KL: %8f || recon: %8f || KL/recon: %2f' % (i, loss, KL, recon, KL/recon))
+    print('Step %d|| loss: %8f' % (i, loss))
     if i % 200 == 0 and i > 1:
-        model.saver.save(sess, './parameters/convVAE/VAE_', global_step=i)
+        model.saver.save(sess, './parameters/convAE/AE_', global_step=i)
         All_loss.append(np.average(temp_loss))
-        All_KL.append(np.average(temp_KL))
-        All_recon.append(np.average(temp_recon))
         step.append(i)
-        visual.plot_loss(All_loss, All_KL, All_recon, step)
+        visual.plot_AE_loss(All_loss, step)
 
         temp_loss = []
         temp_KL = []
