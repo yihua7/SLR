@@ -8,7 +8,8 @@ import os
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2006_10_10\\scene2-camera1.vid'
+# image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2006_10_10\\scene2-camera1.vid'
+image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2007_05_24\\scene3-camera1.vid'
 
 channels = [16, 64, 128]
 hiddens = [128, 64]
@@ -40,4 +41,4 @@ for k in image_list:
 
     print(k)
     recon = np.squeeze(recon)
-    visual.save_image(recon, image_path + '\\AErecon\\', k.split('\\')[-1])
+    visual.save_image(recon, image_path + '\\AErecon\\', k.split('\\')[-1].split('.')[0])
