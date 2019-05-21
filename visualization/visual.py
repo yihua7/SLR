@@ -109,13 +109,27 @@ def plot_loss(loss, KL, recon, step):
     plt.show()
 
 
-def plot_AE_loss(loss, step):
+def plot_embedded(embedded, name):
+    embedded = np.squeeze(np.array(embedded), axis=1)
+    dimen = np.linspace(1, np.shape(embedded)[1], np.shape(embedded)[1], endpoint=True)
+    plt.close('all')
+    color_set = ["b.", "r.", "g.", "y.", "c.", "m.", "k.", "w."]
+    for i in range(np.shape(embedded)[0]):
+        plt.plot(dimen, embedded[i], color_set[i % len(color_set)])
+    plt.title("Embeding Space")
+    plt.xlabel("Dimension")
+    plt.ylabel("Value")
+    plt.savefig(name)
+    plt.show()
+
+
+def plot_AE_loss(loss, step, name="AE_train_info.png"):
     plt.close('all')
     plt.plot(step, loss, "b.-")
     plt.title("Loss Info of convAE")
     plt.xlabel("Step")
     plt.ylabel("Loss")
-    plt.savefig("./visualization/AE_train_info.png")
+    plt.savefig("./visualization/" + name)
     plt.show()
 
 

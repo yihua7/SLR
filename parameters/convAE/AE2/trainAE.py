@@ -9,8 +9,7 @@ import os
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2006_10_10\\scene2-camera1.vid'
-# image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2007_05_24\\scene3-camera1.vid'
-image_path = 'C:\\Users\\agogow5\\Desktop\\Test'
+image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2007_05_24\\scene3-camera1.vid'
 
 channels = [32, 64, 128]
 hiddens = [1024, 256]
@@ -23,8 +22,8 @@ model = convAE(channels, hiddens, W_shapes, strides, batch_size, image_size)
 
 image_list = glob.glob(image_path + '\\*.jpeg')
 
-continuous = False
-lr = 1e-3
+continuous = True
+lr = 1e-5
 expoch = 1000000
 optimizer = tf.train.AdamOptimizer(lr).minimize(model.loss)
 All_loss = []
@@ -47,8 +46,6 @@ if continuous:
 else:
     sess.run(tf.global_variables_initializer())
 
-
-count = 0
 for i in range(expoch):
     index = np.random.randint(0, len(image_list), [batch_size])
     images = []
@@ -56,11 +53,6 @@ for i in range(expoch):
         images.append(GetInput.getimage(image_list[index[j]]))
     loss, _ = sess.run(fetches=[model.loss, optimizer],
                        feed_dict={model.input: images})
-    [embedded] = sess.run(fetches=[model.embedded], feed_dict={model.input: images})
-    embedded = np.array(embedded)
-    d = (embedded - np.average(embedded, 0))
-    d = d*d
-    print(np.average(d, 1))
     # loss, KL, recon, log_sigma, test, _ = sess.run(
     #     fetches=[model.loss, model.KL_loss, model.recon_loss, model.log_sigma, model.test, optimizer],
     #     feed_dict={model.input: images, model.gaussian: gaussian})
@@ -69,16 +61,11 @@ for i in range(expoch):
     temp_loss.append(loss)
     # print('log_sigma and test: ', log_sigma, ', \n', test)
     print('Step %d|| loss: %8f' % (i, loss), '|| index: ', index)
-    if i % 200 == 0 and i > 1:
+    if i % 500 == 0 and i > 1:
         model.saver.save(sess, './parameters/convAE/AE_', global_step=i)
         All_loss.append(np.average(temp_loss))
         step.append(i)
         visual.plot_AE_loss(All_loss, step)
-        if All_loss[0] > All_loss[-1] * 10:
-            count += 1
-            visual.plot_AE_loss(All_loss, step, 'AE_' + str(count) + '.png')
-            All_loss = []
-            step = []
 
         temp_loss = []
         temp_KL = []

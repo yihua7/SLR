@@ -1,12 +1,14 @@
 import tensorflow as tf
 
 
-def set_conv(X, W_shape, out_dim, stride, scope=None, activate="relu"):
+def set_conv(X, W_shape, out_dim, stride, scope=None, activate="relu", bn=False):
     with tf.variable_scope(scope or 'conv', reuse=tf.AUTO_REUSE):
         X = tf.contrib.layers.batch_norm(X, 0.9, epsilon=1e-5, activation_fn=tf.nn.relu)
         W = tf.get_variable('W', [W_shape, W_shape, X.get_shape().as_list()[3], out_dim], trainable=True, initializer=tf.random_normal_initializer(mean=0, stddev=0.1))
         b = tf.get_variable('b', out_dim, trainable=True, initializer=tf.random_normal_initializer)
         out = tf.nn.bias_add(tf.nn.conv2d(X, W, strides=[1, stride, stride, 1], padding='SAME'), b)
+        if bn:
+            out = tf.contrib.layers.batch_norm(out, .9, epsilon=1e-5, activation_fn=None)
         if activate == "relu":
             out = tf.nn.leaky_relu(out)
         elif activate == "sigmoid":
@@ -16,22 +18,26 @@ def set_conv(X, W_shape, out_dim, stride, scope=None, activate="relu"):
         return out
 
 
-def set_deconv(X, W_shape, out_dim, stride, batch_size, scope=None, activate=tf.nn.leaky_relu):
+def set_deconv(X, W_shape, out_dim, stride, batch_size, scope=None, activate=tf.nn.leaky_relu, bn=False):
     with tf.variable_scope(scope or 'conv', reuse=tf.AUTO_REUSE):
         output_shape = [batch_size, X.get_shape().as_list()[1] * stride, X.get_shape().as_list()[2] * stride, out_dim]
         X = tf.contrib.layers.batch_norm(X, 0.9, epsilon=1e-5, activation_fn=tf.nn.relu)
         W = tf.get_variable('W', [W_shape, W_shape, out_dim, X.get_shape().as_list()[3]], trainable=True, initializer=tf.random_normal_initializer(mean=0, stddev=0.1))
         b = tf.get_variable('b', out_dim, trainable=True, initializer=tf.random_normal_initializer)
         out = tf.nn.bias_add(tf.nn.conv2d_transpose(X, W, output_shape=output_shape, strides=[1, stride, stride, 1], padding='SAME'), b)
+        if bn:
+            out = tf.contrib.layers.batch_norm(out, .9, epsilon=1e-5, activation_fn=None)
         out = activate(out)
         return out
 
 
-def set_full(X, out_dim, scope=None, activate=tf.nn.relu):
+def set_full(X, out_dim, scope=None, activate=tf.nn.relu, bn=False):
     with tf.variable_scope(scope or 'full', reuse=tf.AUTO_REUSE):
         W = tf.get_variable('W', [X.get_shape().as_list()[1], out_dim], trainable=True, initializer=tf.random_normal_initializer(mean=0, stddev=0.1))
         b = tf.get_variable('b', [out_dim], trainable=True, initializer=tf.random_normal_initializer)
         output = tf.add(tf.tensordot(X, W, [[1], [0]]), b)
+        if bn:
+            output = tf.contrib.layers.batch_norm(output, .9, epsilon=1e-5, activation_fn=None)
         if activate:
             output = activate(output)
         return output

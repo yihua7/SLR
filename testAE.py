@@ -9,14 +9,17 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2006_10_10\\scene2-camera1.vid'
-image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2007_05_24\\scene3-camera1.vid'
+# image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2007_05_24\\scene3-camera1.vid'
+image_path = 'C:\\Users\\agogow5\\Desktop\\Test'
 
-channels = [16, 64, 128]
-hiddens = [128, 64]
-W_shapes = [3, 3, 3]
-strides = [2, 2, 2]
+channels = [32, 64, 128]
+hiddens = [1024, 256]
+W_shapes = [5, 5, 5]
+strides = [4, 4, 2]
+batch_size = 5
+image_size = [480, 640]
 
-model = convAE(channels, hiddens, W_shapes, strides, 1)
+model = convAE(channels, hiddens, W_shapes, strides, 1, image_size)
 
 image_list = glob.glob(image_path + '\\*.jpeg')
 
@@ -32,13 +35,17 @@ step = []
 sess = tf.Session()
 latest = tf.train.latest_checkpoint('./parameters/convAE/')
 model.saver.restore(sess, latest)
+total_embedded = []
 
 for k in image_list:
     images = [(GetInput.getimage(k))]
-    gaussian = np.random.normal(size=[1, 1])
     recon = sess.run(fetches=[model.recon],
                      feed_dict={model.input: images})
 
     print(k)
+    [embedded] = sess.run(fetches=[model.embedded], feed_dict={model.input: images})
+    total_embedded.append(embedded)
     recon = np.squeeze(recon)
     visual.save_image(recon, image_path + '\\AErecon\\', k.split('\\')[-1].split('.')[0])
+
+visual.plot_embedded(total_embedded, image_path + '\\AErecon\\Embedding.png')

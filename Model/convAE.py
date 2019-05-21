@@ -25,11 +25,6 @@ class convAE:
         self.recon_loss = tf.nn.l2_loss(tf.subtract(self.input, self.recon))
         print('Recon Loss: ', self.recon_loss)
 
-        # Calculating KL Divergence KL(p(x)||g(x))
-        self.mean = self.embedded[0]
-        self.log_sigma = self.embedded[1]
-        self.test = tf.exp(self.log_sigma)
-
         # Total Loss
         self.loss = self.recon_loss
         print('Loss: ', self.loss)
@@ -40,12 +35,12 @@ class convAE:
         with tf.variable_scope('Encoder'):
             print('Encoder')
             for i in range(len(self.channels)):
-                input = nw.set_conv(input, self.W_shapes[i], self.channels[i], self.strides[i], 'conv' + str(i))
+                input = nw.set_conv(input, self.W_shapes[i], self.channels[i], self.strides[i], 'conv' + str(i), bn=False)
                 print(input)
             input = tf.reshape(input, [-1, self.ff_dim])
             print(input)
             for i in range(len(self.hiddens) - 1):
-                input = nw.set_full(input, self.hiddens[i], 'full' + str(i))
+                input = nw.set_full(input, self.hiddens[i], 'full' + str(i), bn=False)
                 print(input)
             input = tf.contrib.layers.batch_norm(input, .9, epsilon=1e-5, activation_fn=None)
             output = nw.set_full(input, self.hiddens[-1], 'mean', None)
@@ -58,17 +53,17 @@ class convAE:
         print(sample)
         with tf.variable_scope('Decoder'):
             for i in range(len(self.hiddens) - 1):
-                sample = nw.set_full(sample, self.hiddens[len(self.hiddens) - i - 2], 'full' + str(i))
+                sample = nw.set_full(sample, self.hiddens[len(self.hiddens) - i - 2], 'full' + str(i), bn=False)
                 print(sample)
-            sample = nw.set_full(sample, self.ff_dim, 'full_last')
+            sample = nw.set_full(sample, self.ff_dim, 'full_last', bn=False)
             print(sample)
             sample = tf.reshape(sample, np.concatenate([[-1], self.final_frame], 0))
             print(sample)
             for i in range(1, len(self.channels)):
                 index = len(self.channels) - i - 1
-                sample = nw.set_deconv(sample, self.W_shapes[index], self.channels[index], self.strides[index+1], self.batch_size, 'deconv' + str(i))
+                sample = nw.set_deconv(sample, self.W_shapes[index], self.channels[index], self.strides[index+1], self.batch_size, 'deconv' + str(i), bn=False)
                 print(sample)
-            sample = nw.set_deconv(sample, self.W_shapes[0], 3, self.strides[0], self.batch_size, 'last_deconv', tf.nn.sigmoid)
+            sample = nw.set_deconv(sample, self.W_shapes[0], 3, self.strides[0], self.batch_size, 'last_deconv', tf.nn.sigmoid, bn=True)
             sample = tf.multiply(sample, 255.)
             print(sample)
             print('End Decoder')
