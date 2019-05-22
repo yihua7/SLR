@@ -113,8 +113,8 @@ def plot_embedded(embedded, name):
     embedded = np.squeeze(np.array(embedded), axis=1)
     dimen = np.linspace(1, np.shape(embedded)[1], np.shape(embedded)[1], endpoint=True)
     plt.close('all')
-    color_set = ["b.", "r.", "g.", "y.", "c.", "m.", "k.", "w."]
-    for i in range(np.shape(embedded)[0]):
+    color_set = ["b.", "r.", "g.", "y.", "c.", "m.", "k."]
+    for i in range(np.min([np.shape(embedded)[0], len(color_set)])):
         plt.plot(dimen, embedded[i], color_set[i % len(color_set)])
     plt.title("Embeding Space")
     plt.xlabel("Dimension")

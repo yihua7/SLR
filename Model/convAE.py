@@ -11,7 +11,8 @@ class convAE:
         self.W_shapes = W_shapes
         self.strides = strides
         self.batch_size = batch_size
-        self.input = tf.placeholder(tf.float32, shape=[None, image_size[0], image_size[1], 3], name='Image')
+        self.raw_input = tf.placeholder(tf.float32, shape=[None, None, None, 3], name='RawInput')
+        self.input = tf.image.resize_images(self.raw_input, image_size, method=2)
         final_frame = self.input.get_shape().as_list()[1:]
         final_frame[0] = math.ceil(final_frame[0] / np.cumprod(strides)[-1])
         final_frame[1] = math.ceil(final_frame[1] / np.cumprod(strides)[-1])
@@ -42,7 +43,7 @@ class convAE:
             for i in range(len(self.hiddens) - 1):
                 input = nw.set_full(input, self.hiddens[i], 'full' + str(i), bn=False)
                 print(input)
-            input = tf.contrib.layers.batch_norm(input, .9, epsilon=1e-5, activation_fn=None)
+            # input = tf.contrib.layers.batch_norm(input, .9, epsilon=1e-5, activation_fn=None)
             output = nw.set_full(input, self.hiddens[-1], 'mean', None)
             print(output)
             return output

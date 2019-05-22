@@ -6,22 +6,23 @@ import Pre_processing.GetInput as GetInput
 import visualization.visual as visual
 import os
 
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-# image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2006_10_10\\scene2-camera1.vid'
-# image_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG\\ASL_2007_05_24\\scene3-camera1.vid'
-image_path = 'C:\\Users\\agogow5\\Desktop\\Test'
+main_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG'
 
-channels = [32, 64, 128]
-hiddens = [1024, 256]
-W_shapes = [5, 5, 5]
-strides = [4, 4, 2]
+channels = [10, 10, 10, 10]
+hiddens = [512]
+W_shapes = [3, 3, 3, 3]
+strides = [2, 2, 2, 2]
 batch_size = 5
-image_size = [480, 640]
+image_size = [128, 128]
 
 model = convAE(channels, hiddens, W_shapes, strides, batch_size, image_size)
 
-image_list = glob.glob(image_path + '\\*.jpeg')
+scene_list = []
+data_list = glob.glob(main_path + '/ASL*')
+for i in data_list:
+    scene_list += (glob.glob(i + '\\*vid'))
 
 continuous = False
 lr = 1e-3
@@ -31,9 +32,6 @@ All_loss = []
 temp_loss = []
 step = []
 
-# config = tf.ConfigProto()
-# config.gpu_options.allow_growth=True
-# sess = tf.Session(config=config)
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'   #指定第一块GPU可用
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction = 0.5  # 程序最多只能占用指定gpu50%的显存
@@ -50,31 +48,31 @@ else:
 
 count = 0
 for i in range(expoch):
-    index = np.random.randint(0, len(image_list), [batch_size])
+    index_scene = np.random.randint(0, len(scene_list), [batch_size])
     images = []
     for j in range(batch_size):
-        images.append(GetInput.getimage(image_list[index[j]]))
-    loss, _ = sess.run(fetches=[model.loss, optimizer],
-                       feed_dict={model.input: images})
-    [embedded] = sess.run(fetches=[model.embedded], feed_dict={model.input: images})
+        images_list = glob.glob(scene_list[index_scene[j]] + '/*.jpeg')
+        index_image = np.random.randint(0, len(images_list))
+        images.append(GetInput.getimage(images_list[index_image]))
+    loss, embedded, _ = sess.run(fetches=[model.loss, model.embedded, optimizer],
+                                 feed_dict={model.raw_input: images})
     embedded = np.array(embedded)
     d = (embedded - np.average(embedded, 0))
     d = d*d
-    print(np.average(d, 1))
-    # loss, KL, recon, log_sigma, test, _ = sess.run(
-    #     fetches=[model.loss, model.KL_loss, model.recon_loss, model.log_sigma, model.test, optimizer],
-    #     feed_dict={model.input: images, model.gaussian: gaussian})
+    d = np.average(d)
 
     loss = loss / batch_size
     temp_loss.append(loss)
-    # print('log_sigma and test: ', log_sigma, ', \n', test)
-    print('Step %d|| loss: %8f' % (i, loss), '|| index: ', index)
+    print('Step %d|| loss: %8f' % (i, loss), ' || covariance: ', d)
     if i % 200 == 0 and i > 1:
         model.saver.save(sess, './parameters/convAE/AE_', global_step=i)
         All_loss.append(np.average(temp_loss))
         step.append(i)
         visual.plot_AE_loss(All_loss, step)
-        if All_loss[0] > All_loss[-1] * 10:
+        if All_loss[0] > All_loss[-1] * 10 or len(step) > 200:
+            if len(step) > 200:
+                lr = 1e-5
+                optimizer = tf.train.AdamOptimizer(lr).minimize(model.loss)
             count += 1
             visual.plot_AE_loss(All_loss, step, 'AE_' + str(count) + '.png')
             All_loss = []
