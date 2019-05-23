@@ -1,6 +1,6 @@
 import tensorflow as tf
 import numpy as np
-from Model.convAE import convAE
+from Model.convAE_new import convAE_test
 import glob
 import Pre_processing.GetInput as GetInput
 import visualization.visual as visual
@@ -10,14 +10,14 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 main_path = 'D:\\UserData\\DeepLearning\\Sign-Language-Recognition\\Data\\ASL\\JPEG'
 
-channels = [10, 10, 10, 10]
-hiddens = [512]
-W_shapes = [3, 3, 3, 3]
-strides = [2, 2, 2, 2]
+channels = [10, 20, 20, 20, 10]
+hiddens = [1024]
+W_shapes = [3, 3, 3, 3, 3]
+strides = [2, 2, 2, 2, 2]
 batch_size = 5
 image_size = [128, 128]
 
-model = convAE(channels, hiddens, W_shapes, strides, batch_size, image_size)
+model = convAE_test(channels, hiddens, W_shapes, strides, batch_size, image_size)
 
 scene_list = []
 data_list = glob.glob(main_path + '/ASL*')
@@ -26,8 +26,9 @@ for i in data_list:
 
 continuous = False
 lr = 1e-3
+learning_rate = tf.placeholder(tf.float32, [])
 expoch = 1000000
-optimizer = tf.train.AdamOptimizer(lr).minimize(model.loss)
+optimizer = tf.train.AdamOptimizer(learning_rate).minimize(model.loss)
 All_loss = []
 temp_loss = []
 step = []
@@ -55,7 +56,7 @@ for i in range(expoch):
         index_image = np.random.randint(0, len(images_list))
         images.append(GetInput.getimage(images_list[index_image]))
     loss, embedded, _ = sess.run(fetches=[model.loss, model.embedded, optimizer],
-                                 feed_dict={model.raw_input: images})
+                                 feed_dict={model.raw_input: images, learning_rate: lr})
     embedded = np.array(embedded)
     d = (embedded - np.average(embedded, 0))
     d = d*d
@@ -69,10 +70,9 @@ for i in range(expoch):
         All_loss.append(np.average(temp_loss))
         step.append(i)
         visual.plot_AE_loss(All_loss, step)
-        if All_loss[0] > All_loss[-1] * 10 or len(step) > 200:
-            if len(step) > 200:
+        if All_loss[0] > All_loss[-1] * 10 or len(step) > 50:
+            if len(step) > 50:
                 lr = 1e-5
-                optimizer = tf.train.AdamOptimizer(lr).minimize(model.loss)
             count += 1
             visual.plot_AE_loss(All_loss, step, 'AE_' + str(count) + '.png')
             All_loss = []
