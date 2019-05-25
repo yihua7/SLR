@@ -41,7 +41,7 @@ sess = tf.Session(config=config)
 
 if continuous:
     sess.run(tf.global_variables_initializer())
-    latest = tf.train.latest_checkpoint('./parameters/convAE/')
+    latest = tf.train.latest_checkpoint('./Parameters/convAE/')
     model.saver.restore(sess, latest)
 else:
     sess.run(tf.global_variables_initializer())
@@ -62,7 +62,7 @@ for i in range(expoch):
     # print('log_sigma and test: ', log_sigma, ', \n', test)
     print('Step %d|| loss: %8f' % (i, loss), '|| index: ', index)
     if i % 500 == 0 and i > 1:
-        model.saver.save(sess, './parameters/convAE/AE_', global_step=i)
+        model.saver.save(sess, './Parameters/convAE/AE_', global_step=i)
         All_loss.append(np.average(temp_loss))
         step.append(i)
         visual.plot_AE_loss(All_loss, step)

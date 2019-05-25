@@ -30,7 +30,7 @@ All_recon = []
 step = []
 
 sess = tf.Session()
-latest = tf.train.latest_checkpoint('./parameters/convVAE/')
+latest = tf.train.latest_checkpoint('./Parameters/convVAE/')
 model.saver.restore(sess, latest)
 
 for k in image_list:

@@ -105,7 +105,7 @@ class Spatial_hourglass():
 
             tf.global_variables_initializer().run()
             if continue_train:
-                latest = tf.train.latest_checkpoint('./parameters/Spatial_Attention/spatial_')
+                latest = tf.train.latest_checkpoint('./Parameters/Spatial_Attention/spatial_')
                 self.saver.restore(sess, latest)
 
             plot_loss = []
@@ -176,7 +176,7 @@ class Spatial_hourglass():
                     plot_loss.append(loss)
                     plot_step.append(len(plot_step))
                     visual.plot_info(plot_loss, plot_step, name=str(step))
-                    self.saver.save(sess, './parameters/Spatial_Attention/spatial_', global_step=i)
+                    self.saver.save(sess, './Parameters/Spatial_Attention/spatial_', global_step=i)
         sess.close()
 
     def test(self, data_path, mode='downSample'):
@@ -198,7 +198,7 @@ class Spatial_hourglass():
         with tf.Session(config=config) as sess:
 
             tf.global_variables_initializer().run()
-            latest = tf.train.latest_checkpoint('./parameters/Spatial_Attention')
+            latest = tf.train.latest_checkpoint('./Parameters/Spatial_Attention')
             self.saver.restore(sess, latest)
 
             for name in data_list:

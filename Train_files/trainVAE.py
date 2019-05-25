@@ -43,7 +43,7 @@ config.gpu_options.allow_growth = True      #程序按需申请内存
 sess = tf.Session(config=config)
 
 if continuous:
-    latest = tf.train.latest_checkpoint('./parameters/convVAE/')
+    latest = tf.train.latest_checkpoint('./Parameters/convVAE/')
     model.saver.restore(sess, latest)
 else:
     sess.run(tf.global_variables_initializer())
@@ -69,7 +69,7 @@ for i in range(expoch):
     # print('log_sigma and test: ', log_sigma, ', \n', test)
     print('Step %d|| loss: %8f || KL: %8f || recon: %8f || KL/recon: %2f' % (i, loss, KL, recon, KL/recon))
     if i % 200 == 0 and i > 1:
-        model.saver.save(sess, './parameters/convVAE/VAE_', global_step=i)
+        model.saver.save(sess, './Parameters/convVAE/VAE_', global_step=i)
         All_loss.append(np.average(temp_loss))
         All_KL.append(np.average(temp_KL))
         All_recon.append(np.average(temp_recon))

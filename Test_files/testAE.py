@@ -35,7 +35,7 @@ All_recon = []
 step = []
 
 sess = tf.Session()
-latest = tf.train.latest_checkpoint('./parameters/convAE/')
+latest = tf.train.latest_checkpoint('./Parameters/convAE/')
 model.saver.restore(sess, latest)
 total_embedded = []
 

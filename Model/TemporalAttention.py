@@ -54,7 +54,7 @@ class SelfAttention:
         if not coninue_train:
             sess.run(tf.global_variables_initializer())
         else:
-            latest = tf.train.latest_checkpoint('./parameters/Temporal_Attention/')
+            latest = tf.train.latest_checkpoint('./Parameters/Temporal_Attention/')
             self.saver.restore(sess, latest)
         plot_loss = []
         plot_step = []
@@ -81,7 +81,7 @@ class SelfAttention:
                     print("Iteration: %d|    Loss: %.8f|     Outcome: " % (i, loss) + outcome + '|  ' + key + ' ' + jsonfile[key][0] + " " + str(list(output)))
 
             if i % 50 == 0 and i != 0:
-                self.saver.save(sess, './parameters/Temporal_Attention/temporal_', global_step=i)
+                self.saver.save(sess, './Parameters/Temporal_Attention/temporal_', global_step=i)
 
             if i % 50 == 0 and i != 0:
                 plot_loss.append(temp_loss/count)
@@ -93,7 +93,7 @@ class SelfAttention:
         jsonfile = json.load(open(jsonPath))
         sess = tf.Session()
         tf.global_variables_initializer().run(session=sess)
-        latest = tf.train.latest_checkpoint('./parameters/Temporal_Attention')
+        latest = tf.train.latest_checkpoint('./Parameters/Temporal_Attention')
         self.saver.restore(sess, latest)
 #        sess.run(tf.global_variables_initializer())
         count = 0
