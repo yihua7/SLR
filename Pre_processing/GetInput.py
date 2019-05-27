@@ -65,7 +65,7 @@ def getheatmap(label, size):
 def csv2json(csv_path, json_path):
     dict = {"TWENTY": 0, "ALONE": 1, "ONE": 2, "ALWAYS": 3}
     # Input csv file path
-    store ={}
+    store = {}
     category = set()
     count = {}
     i = 0
